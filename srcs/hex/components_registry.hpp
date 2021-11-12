@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 15:59
+** \date Last update: 2021-11-12 16:25
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -24,7 +24,7 @@ namespace hex {
     class components_registry {
         public:
             template <class T>
-            using container_t = containers::sparse_array<T>;
+            using container_t = containers::sparse_array<std::decay_t<T>>;
 
         public:
             template <typename Component>
@@ -32,34 +32,39 @@ namespace hex {
                 auto && [v, ok] = try_register_type<Component>();
 
                 if (!ok)
-                    throw exceptions::already_registered(typeid(Component).name());
+                    throw exceptions::already_registered(typeid(std::decay_t<Component>).name());
 
                 return v;
             }
 
             template <typename Component>
             std::tuple<container_t<Component> &, bool> try_register_type() noexcept {
-                auto [it, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
+                auto [it, ok] = _registry.try_emplace(std::type_index{typeid(std::decay_t<Component>)}, std::make_any<container_t<Component>>());
 
                 return std::tie(std::any_cast<container_t<Component> &>(it->second), ok);
             }
 
             template <typename Component>
             [[nodiscard]]
-            containers::sparse_array<Component> &get() {
-                return const_cast<containers::sparse_array<Component> &>(std::as_const(*this).get<Component>());
+            container_t<Component> &get() {
+                return const_cast<container_t<Component> &>(std::as_const(*this).get<Component>());
             }
 
             template <typename Component>
             [[nodiscard]]
-            containers::sparse_array<Component> const &get() const {
-                return std::any_cast<containers::sparse_array<Component> const &>(_registry.at(typeid(Component)));
+            container_t<Component> const &get() const {
+                return std::any_cast<container_t<Component> const &>(_registry.at(typeid(std::decay_t<Component>)));
             }
 
             template <typename Component>
-            Component & insert_at(std::size_t, Component const &) { throw exceptions::unimplemented{"insert_at copy"}; }
-            template <typename Component>
-            Component & insert_at(std::size_t, Component &&) { throw exceptions::unimplemented{"insert_at move"}; }
+            Component & insert_at(std::size_t idx, Component &&c) {
+                auto & cont = get<Component>();
+
+                cont.insert_at(idx, std::forward<Component>(c));
+
+                return cont.at(idx).value();
+            }
+
             template <typename Component, class... Params>
             Component & emplace_at(std::size_t, Params &&...) { throw exceptions::unimplemented{"emplace_at"}; }
 
