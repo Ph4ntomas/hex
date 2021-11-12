@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 16:43
+** \date Last update: 2021-11-12 17:38
 */
 
 #include <criterion/criterion.h>
@@ -316,18 +316,115 @@ Test(HexComponentRegistry, move_emplace_unregistered_component_should_throw, .di
     cr_assert_throw(cr.emplace_at<decltype(comp)>(5, std::move(comp)), std::out_of_range);
 }
 
-Test(HexComponentRegistry, remove_at_existing_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, remove_at_existing_component, .disabled = false) {
+    hex::components_registry cr;
+
+    Component<int, 0> comp{5};
+    auto &sa = cr.register_type<decltype(comp)>();
+
+    cr.insert_at(5, comp);
+
+    cr_expect_eq(sa.at(5), std::optional{comp});
+
+    cr.remove_at<decltype(comp)>(5);
+    cr_assert_eq(sa.at(5), std::nullopt);
 }
 
-Test(HexComponentRegistry, remove_at_unexisting_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, remove_at_unexisting_component_should_throw, .disabled = false) {
+    hex::components_registry cr;
+
+    Component<int, 0> comp{5};
+    Component<int, 1> comp2{5};
+    auto &sa = cr.register_type<decltype(comp2)>();
+
+    cr.insert_at(5, comp2);
+
+    cr_expect_eq(sa.at(5), std::optional{comp2});
+
+    cr_assert_throw(cr.remove_at<decltype(comp)>(5), std::out_of_range);
 }
 
-Test(HexComponentRegistry, remove_at_unexisting_id, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, remove_at_unexisting_id, .disabled = false) {
+    hex::components_registry cr;
+
+    Component<int, 0> comp{5};
+    auto &sa = cr.register_type<decltype(comp)>();
+
+    cr.insert_at(5, comp);
+
+    cr_expect_eq(sa.at(5), std::optional{comp});
+    cr_assert_eq(sa.at(4), std::nullopt);
+
+    cr.remove_at<decltype(comp)>(4);
+    cr_assert_eq(sa.at(4), std::nullopt);
+
+
+    auto sz = sa.size();
+    cr.remove_at<decltype(comp)>(sa.size() + 10);
+    cr_assert_eq(sa.size(), sz);
 }
 
-Test(HexComponentRegistry, erase_at_existing_entity, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, erase_at_existing_entity, .disabled = false) {
+    hex::components_registry cr;
+
+    Component<int, 0> comp{5};
+    Component<int, 1> comp2{5};
+    Component<int, 2> comp3{5};
+    Component<int, 3> comp4{5};
+
+    auto &sa1 = cr.register_type<decltype(comp)>();
+    auto &sa2 = cr.register_type<decltype(comp2)>();
+    auto &sa3 = cr.register_type<decltype(comp3)>();
+    auto &sa4 = cr.register_type<decltype(comp4)>();
+
+    cr.insert_at(5, comp);
+    cr.insert_at(5, comp2);
+    cr.insert_at(7, comp3);
+    cr.insert_at(2, comp4);
+
+    cr_expect_eq(sa1.at(5), std::optional{comp});
+    cr_expect_eq(sa2.at(5), std::optional{comp2});
+    cr_expect_eq(sa3.at(5), std::nullopt);
+    cr_expect_eq(sa3.at(7), std::optional{comp3});
+    cr_expect_eq(sa4.at(2), std::optional{comp4});
+
+    auto sz = sa4.size();
+
+    cr.erase_at(5);
+
+    cr_assert_eq(sa4.size(), sz);
+
+    cr_assert_eq(sa1.at(5), std::nullopt);
+    cr_assert_eq(sa2.at(5), std::nullopt);
+    cr_assert_eq(sa3.at(5), std::nullopt);
+    cr_assert_eq(sa3.at(7), std::optional{comp3});
+}
+
+Test(HexComponentRegistry, erase_at_non_existing_entity, .disabled = false) {
+    hex::components_registry cr;
+
+    Component<int, 0> comp{5};
+    Component<int, 1> comp2{5};
+
+    auto &sa1 = cr.register_type<decltype(comp)>();
+    auto &sa2 = cr.register_type<decltype(comp2)>();
+
+    cr.insert_at(1, comp);
+    cr.insert_at(5, comp2);
+
+    cr_expect_eq(sa1.at(1), std::optional{comp});
+    cr_expect_eq(sa2.at(4), std::nullopt);
+    cr_expect_eq(sa2.at(5), std::optional{comp2});
+
+    auto sz1 = sa1.size();
+    auto sz2 = sa2.size();
+
+    cr.erase_at(2);
+
+    cr_assert_eq(sa1.size(), sz1);
+    cr_assert_eq(sa2.size(), sz2);
+
+    cr_assert_eq(sa1.at(1), std::optional{comp});
+    cr_assert_eq(sa2.at(4), std::nullopt);
+    cr_assert_eq(sa2.at(5), std::optional{comp2});
 }
