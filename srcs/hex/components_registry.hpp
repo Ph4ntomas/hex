@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 14:50
+** \date Last update: 2021-11-12 15:13
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -17,13 +17,19 @@
 #include <unordered_map>
 
 #include "hex/containers/sparse_array.hpp"
+#include "hex/exceptions/already_registered.hpp"
 #include "hex/exceptions/unimplemented.hpp"
 
 namespace hex {
     class components_registry {
         public:
             template <typename Component>
-            void register_type() { throw exceptions::unimplemented{"register_type"}; }
+            void register_type() {
+                auto [it, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
+
+                if (!ok)
+                    throw exceptions::already_registered(typeid(Component).name());
+            }
 
             template <typename Component>
             bool try_register_type() noexcept { throw exceptions::unimplemented{"try_register_type"}; }
