@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 16:35
+** \date Last update: 2021-11-12 17:40
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -41,6 +41,12 @@ namespace hex {
             std::tuple<container_t<Component> &, bool> try_register_type() noexcept {
                 auto [it, ok] = _registry.try_emplace(std::type_index{typeid(std::decay_t<Component>)}, std::make_any<container_t<Component>>());
 
+                if (ok) {
+                    _erasers.emplace_back([](components_registry &r, std::size_t index) {
+                        r.remove_at<Component>(index);
+                    });
+                }
+
                 return std::tie(std::any_cast<container_t<Component> &>(it->second), ok);
             }
 
@@ -75,9 +81,18 @@ namespace hex {
             }
 
             template <typename Component>
-            bool remove_at(std::size_t index) { throw exceptions::unimplemented{"remove_at"}; }
+            void remove_at(std::size_t index) {
+                auto &cont = get<Component>();
 
-            void erase_at(std::size_t index) { throw exceptions::unimplemented{"erase_at"}; }
+                if (cont.size() > index)
+                    cont.erase_at(index);
+            }
+
+            void erase_at(std::size_t index) {
+                for (auto &&f : _erasers) {
+                    f(*this, index);
+                }
+            }
         private:
             std::unordered_map<std::type_index, std::any> _registry;
 
