@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 15:13
+** \date Last update: 2021-11-12 15:22
 */
 
 #include <criterion/criterion.h>
@@ -47,12 +47,25 @@ Test(HexComponentRegistry, reregister_type_should_throw, .disabled = false) {
     cr_assert_throw((cr.register_type<Component<int, 0>>()), hex::exceptions::already_registered);
 }
 
-Test(HexComponentRegistry, try_register_type, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, try_register_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr_assert((cr.try_register_type<Component<int, 0>>()));
 }
 
-Test(HexComponentRegistry, try_reregister_multiple_types, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, try_register_multiple_types, .disabled = false) {
+    hex::components_registry cr;
+
+    cr_assert((cr.try_register_type<Component<int, 0>>()));
+    cr_assert((cr.try_register_type<Component<int, 1>>()));
+    cr_assert((cr.try_register_type<Component<int, 2>>()));
+}
+
+Test(HexComponentRegistry, try_reregister_multiple_types, .disabled = false) {
+    hex::components_registry cr;
+
+    cr_assert((cr.try_register_type<Component<int, 0>>()));
+    cr_assert_not((cr.try_register_type<Component<int, 0>>()));
 }
 
 Test(HexComponentRegistry, get_registered_type, .disabled = true) {
