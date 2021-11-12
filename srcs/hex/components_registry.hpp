@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 17:40
+** \date Last update: 2021-11-12 18:03
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -27,6 +27,12 @@ namespace hex {
             using container_t = containers::sparse_array<std::decay_t<T>>;
 
         public:
+            components_registry() = default;
+            components_registry(components_registry const &) = delete;
+            components_registry(components_registry &&) noexcept = default;
+            components_registry & operator=(components_registry const &) = delete;
+            components_registry & operator=(components_registry &&) noexcept = default;
+
             template <typename Component>
             container_t<Component> &register_type() {
                 auto && [v, ok] = try_register_type<Component>();
