@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 11:36
+** \date Last update: 2021-11-12 14:50
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -48,7 +48,7 @@ namespace hex {
 
             void erase_at(std::size_t index) { throw exceptions::unimplemented{"erase_at"}; }
         private:
-            std::unordered_map<std::type_info, std::any> _registry;
+            std::unordered_map<std::type_index, std::any> _registry;
 
             std::vector<std::function<void(components_registry &, std::size_t)>> _erasers;
     };
