@@ -26,18 +26,20 @@ Test(HexComponentRegistry, buildEmptyRegistry, .disabled = false) {
 Test(HexComponentRegistry, register_type, .disabled = false) {
     hex::components_registry cr;
 
-    cr.register_type<Component<int, 0>>();
-    cr_assert(true);
+    auto &sa = cr.register_type<Component<int, 0>>();
+    cr_assert_eq(sa.size(), 0);
 }
 
 Test(HexComponentRegistry, register_multiple_types, .disabled = false) {
     hex::components_registry cr;
 
-    cr.register_type<Component<int, 0>>();
-    cr.register_type<Component<int, 1>>();
+    auto &sa1 = cr.register_type<Component<int, 0>>();
+    auto &sa2 = cr.register_type<Component<int, 1>>();
     cr.register_type<Component<int, 2>>();
     cr.register_type<Component<int, 3>>();
-    cr_assert(true);
+
+    cr_assert_eq(sa1.size(), 0);
+    cr_assert_eq(sa2.size(), 0);
 }
 
 Test(HexComponentRegistry, reregister_type_should_throw, .disabled = false) {
@@ -50,22 +52,40 @@ Test(HexComponentRegistry, reregister_type_should_throw, .disabled = false) {
 Test(HexComponentRegistry, try_register_type, .disabled = false) {
     hex::components_registry cr;
 
-    cr_assert((cr.try_register_type<Component<int, 0>>()));
+    auto &&[v, ok] = cr.try_register_type<Component<int, 0>>();
+    cr_assert(ok);
 }
 
 Test(HexComponentRegistry, try_register_multiple_types, .disabled = false) {
     hex::components_registry cr;
 
-    cr_assert((cr.try_register_type<Component<int, 0>>()));
-    cr_assert((cr.try_register_type<Component<int, 1>>()));
-    cr_assert((cr.try_register_type<Component<int, 2>>()));
+    auto &&[v1, ok1] = cr.try_register_type<Component<int, 0>>();
+    cr_assert(ok1);
+    cr_assert_eq(v1.size(), 0);
+
+    auto &&[v2, ok2] = cr.try_register_type<Component<int, 1>>();
+    cr_assert(ok2);
+    cr_assert_eq(v2.size(), 0);
+
+    auto &&[v3, ok3] = cr.try_register_type<Component<int, 2>>();
+    cr_assert(ok3);
+    cr_assert_eq(v3.size(), 0);
 }
 
 Test(HexComponentRegistry, try_reregister_multiple_types, .disabled = false) {
     hex::components_registry cr;
 
-    cr_assert((cr.try_register_type<Component<int, 0>>()));
-    cr_assert_not((cr.try_register_type<Component<int, 0>>()));
+    auto &&[v1, ok1] = cr.try_register_type<Component<int, 0>>();
+    cr_assert(ok1);
+    cr_assert_eq(v1.size(), 0);
+    v1.insert_at(4, Component<int, 0>{2});
+    cr_expect_geq(v1.size(), 5, "Something is wrong with sparse_array");
+
+    auto &&[v2, ok2] = cr.try_register_type<Component<int, 0>>();
+    cr_assert_not(ok2);
+    cr_assert_eq(std::addressof(v1), std::addressof(v2));
+}
+
 }
 
 Test(HexComponentRegistry, get_registered_type, .disabled = true) {
