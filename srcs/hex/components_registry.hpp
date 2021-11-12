@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 15:13
+** \date Last update: 2021-11-12 15:21
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -25,14 +25,18 @@ namespace hex {
         public:
             template <typename Component>
             void register_type() {
-                auto [it, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
+                auto ok = try_register_type<Component>();
 
                 if (!ok)
                     throw exceptions::already_registered(typeid(Component).name());
             }
 
             template <typename Component>
-            bool try_register_type() noexcept { throw exceptions::unimplemented{"try_register_type"}; }
+            bool try_register_type() noexcept {
+                auto [_, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
+
+                return ok;
+            }
 
             template <typename Component>
             [[nodiscard]]
