@@ -1,3 +1,11 @@
+/**
+** \file sparse_array.cpp
+**
+** \author Phantomas <phantomas@phantomas.xyz>
+** \date Created on: 2021-11-12 11:43
+** \date Last update: 2021-11-12 11:43
+*/
+
 #include <criterion/criterion.h>
 #include <hex/containers/sparse_array.hpp>
 
