@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 16:25
+** \date Last update: 2021-11-12 16:35
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -66,7 +66,13 @@ namespace hex {
             }
 
             template <typename Component, class... Params>
-            Component & emplace_at(std::size_t, Params &&...) { throw exceptions::unimplemented{"emplace_at"}; }
+            Component & emplace_at(std::size_t idx, Params &&... ps) {
+                auto &cont = get<Component>();
+
+                cont.emplace_at(idx, std::forward<Params>(ps)...);
+
+                return cont.at(idx).value();
+            }
 
             template <typename Component>
             bool remove_at(std::size_t index) { throw exceptions::unimplemented{"remove_at"}; }
