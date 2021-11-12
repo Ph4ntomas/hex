@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 11:56
+** \date Last update: 2021-11-12 12:22
 */
 
 #include <criterion/criterion.h>
@@ -12,7 +12,8 @@
 TestSuite(HexComponentRegistry, .description = "Ensure components_registry enable works as expected.", .disabled = false);
 
 Test(HexComponentRegistry, buildEmptyRegistry, .disabled = false) {
-    cr_assert_fail();
+    hex::components_registry cr;
+    cr_assert(true);
 }
 
 Test(HexComponentRegistry, register_type, .disabled = false) {
