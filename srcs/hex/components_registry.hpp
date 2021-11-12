@@ -23,19 +23,25 @@
 namespace hex {
     class components_registry {
         public:
+            template <class T>
+            using container_t = containers::sparse_array<T>;
+
+        public:
             template <typename Component>
-            void register_type() {
-                auto ok = try_register_type<Component>();
+            container_t<Component> &register_type() {
+                auto && [v, ok] = try_register_type<Component>();
 
                 if (!ok)
                     throw exceptions::already_registered(typeid(Component).name());
+
+                return v;
             }
 
             template <typename Component>
-            bool try_register_type() noexcept {
-                auto [_, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
+            std::tuple<container_t<Component> &, bool> try_register_type() noexcept {
+                auto [it, ok] = _registry.try_emplace(std::type_index{typeid(Component)}, std::make_any<containers::sparse_array<Component>>());
 
-                return ok;
+                return std::tie(std::any_cast<container_t<Component> &>(it->second), ok);
             }
 
             template <typename Component>
