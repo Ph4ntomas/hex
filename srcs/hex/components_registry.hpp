@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-12 15:21
+** \date Last update: 2021-11-12 15:59
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
@@ -46,11 +46,15 @@ namespace hex {
 
             template <typename Component>
             [[nodiscard]]
-            containers::sparse_array<Component> &get() { throw exceptions::unimplemented{"get"}; }
+            containers::sparse_array<Component> &get() {
+                return const_cast<containers::sparse_array<Component> &>(std::as_const(*this).get<Component>());
+            }
 
             template <typename Component>
             [[nodiscard]]
-            containers::sparse_array<Component> const &get() const { throw exceptions::unimplemented{"get const"}; }
+            containers::sparse_array<Component> const &get() const {
+                return std::any_cast<containers::sparse_array<Component> const &>(_registry.at(typeid(Component)));
+            }
 
             template <typename Component>
             Component & insert_at(std::size_t, Component const &) { throw exceptions::unimplemented{"insert_at copy"}; }

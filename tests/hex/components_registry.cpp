@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 15:22
+** \date Last update: 2021-11-12 15:57
 */
 
 #include <criterion/criterion.h>
@@ -86,14 +86,50 @@ Test(HexComponentRegistry, try_reregister_multiple_types, .disabled = false) {
     cr_assert_eq(std::addressof(v1), std::addressof(v2));
 }
 
+Test(HexComponentRegistry, get_registered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    auto &sa = cr.get<Component<int, 0>>();
+
+    cr_assert(!std::is_const_v<std::remove_reference_t<decltype(sa)>>);
+    cr_assert_eq(
+        typeid(hex::containers::sparse_array<Component<int, 0>>),
+        typeid(std::remove_reference_t<decltype(sa)>)
+    );
 }
 
-Test(HexComponentRegistry, get_registered_type, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, const_get_registered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    auto &sa = std::as_const(cr).get<Component<int, 0>>();
+
+    cr_assert(std::is_const_v<std::remove_reference_t<decltype(sa)>>);
+    cr_assert_eq(
+        typeid(hex::containers::sparse_array<Component<int, 0>>),
+        typeid(std::remove_reference_t<decltype(sa)>)
+    );
 }
 
-Test(HexComponentRegistry, const_get_registered_type, .disabled = true) {
-    cr_assert_fail();
+
+Test(HexComponentRegistry, get_unregistered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    cr_assert_throw(((void)cr.get<Component<int, 1>>()), std::out_of_range);
+
+}
+
+Test(HexComponentRegistry, const_get_unregistered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    cr_assert_throw(((void)std::as_const(cr).get<Component<int, 1>>()), std::out_of_range);
 }
 
 Test(HexComponentRegistry, copy_insert_component, .disabled = true) {
