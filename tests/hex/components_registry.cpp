@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 16:27
+** \date Last update: 2021-11-12 16:43
 */
 
 #include <criterion/criterion.h>
@@ -20,6 +20,17 @@ template <typename T, size_t Id, size_t Id2 = Id>
 bool operator==(Component<T, Id> const &lhs, Component<T, Id2> const &rhs) {
     return lhs.val == rhs.val && Id == Id2;
 }
+
+struct emplace_test {
+    emplace_test(int _v1, int _v2): v1(_v1), v2(_v2) {}
+
+    friend bool operator==(emplace_test const &lhs, emplace_test const &rhs) {
+        return lhs.v1 == rhs.v1 && lhs.v2 == rhs.v2;
+    }
+    private:
+        int v1;
+        int v2;
+};
 
 TestSuite(HexComponentRegistry, .description = "Ensure components_registry enable works as expected.", .disabled = false);
 
@@ -205,40 +216,104 @@ Test(HexComponentRegistry, move_insert_unregistered_component_should_throw, .dis
     cr_assert_throw(cr.insert_at(5, std::move(comp)), std::out_of_range);
 }
 
-Test(HexComponentRegistry, build_emplace_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, build_emplace_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<emplace_test>();
+
+    cr.emplace_at<emplace_test>(5, 1, 2);
+
+    cr_assert_eq(sa.at(5), std::make_optional<emplace_test>(1, 2));
 }
 
-Test(HexComponentRegistry, build_emplace_override_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, build_emplace_override_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<emplace_test>();
+
+    auto comp = emplace_test{5, 6};
+    auto comp2 = emplace_test{6, 7};
+    cr.emplace_at<decltype(comp)>(5, 5, 6);
+    cr_expect_eq(sa.at(5), std::make_optional<emplace_test>(5, 6));
+
+    cr.emplace_at<decltype(comp)>(5, 6, 7);
+    cr_expect_eq(sa.at(5), std::make_optional<emplace_test>(6, 7));
 }
 
-Test(HexComponentRegistry, build_emplace_unregistered_component_should_throw, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, build_emplace_unregistered_component_should_throw, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    cr_assert_throw(cr.emplace_at<emplace_test>(5, 1, 2), std::out_of_range);
 }
 
-Test(HexComponentRegistry, copy_emplace_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, copy_emplace_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 0>{5};
+    cr.emplace_at<decltype(comp)>(5, comp);
+
+    cr_assert_eq(sa.at(5), std::optional{comp});
 }
 
-Test(HexComponentRegistry, copy_emplace_override_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, copy_emplace_override_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 0>{5};
+    auto comp2 = Component<int, 0>{6};
+    cr.emplace_at<decltype(comp)>(5, comp);
+    cr_expect_eq(sa.at(5), std::optional{comp});
+
+    cr.emplace_at<decltype(comp)>(5, comp2);
+    cr_expect_eq(sa.at(5), std::optional{comp2});
 }
 
-Test(HexComponentRegistry, copy_emplace_unregistered_component_should_throw, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, copy_emplace_unregistered_component_should_throw, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 1>{5};
+    cr_assert_throw(cr.emplace_at<decltype(comp)>(5, comp), std::out_of_range);
 }
 
-Test(HexComponentRegistry, move_emplace_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, move_emplace_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 0>{5};
+    cr.emplace_at<decltype(comp)>(5, std::move(comp));
+
+    cr_assert_eq(sa.at(5), std::optional{comp});
 }
 
-Test(HexComponentRegistry, move_emplace_override_component, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, move_emplace_override_component, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 0>{5};
+    auto comp2 = Component<int, 0>{6};
+    cr.emplace_at<decltype(comp)>(5, std::move(comp));
+    cr_expect_eq(sa.at(5), std::optional{comp});
+
+    cr.emplace_at<decltype(comp)>(5, std::move(comp2));
+    cr_expect_eq(sa.at(5), std::optional{comp2});
 }
 
-Test(HexComponentRegistry, move_emplace_unregistered_component_should_throw, .disabled = true) {
-    cr_assert_fail();
+Test(HexComponentRegistry, move_emplace_unregistered_component_should_throw, .disabled = false) {
+    hex::components_registry cr;
+
+    auto &sa = cr.register_type<Component<int, 0>>();
+
+    auto comp = Component<int, 1>{5};
+    cr_assert_throw(cr.emplace_at<decltype(comp)>(5, std::move(comp)), std::out_of_range);
 }
 
 Test(HexComponentRegistry, remove_at_existing_component, .disabled = true) {
