@@ -66,3 +66,34 @@ target_link_options(Hex_components_registry_tests
 )
 
 add_test(NAME Hex_components_registry_tests COMMAND Hex_components_registry_tests --verbose)
+
+add_executable(Hex_entity_manager_tests)
+
+target_sources(Hex_entity_manager_tests
+    PRIVATE
+    hex/entity_manager.cpp
+)
+
+target_include_directories(Hex_entity_manager_tests
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/srcs>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+            ${CRITERION_INCLUDE_DIRS}
+)
+
+target_compile_features(Hex_entity_manager_tests PRIVATE cxx_std_17)
+
+target_compile_options(
+    Hex_entity_manager_tests
+    PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:--coverage>
+            $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:-fprofile-arcs>
+)
+
+target_link_libraries(Hex_entity_manager_tests 
+    PRIVATE ${CRITERION_LIBRARIES}
+)
+
+target_link_options(Hex_entity_manager_tests 
+    PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:--coverage>
+)
+
+add_test(NAME Hex_entity_manager_tests COMMAND Hex_entity_manager_tests --verbose)
