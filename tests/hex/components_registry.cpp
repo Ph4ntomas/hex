@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:43
-** \date Last update: 2021-11-12 17:38
+** \date Last update: 2021-11-25 12:28
 */
 
 #include <criterion/criterion.h>
@@ -100,6 +100,22 @@ Test(HexComponentRegistry, try_reregister_multiple_types, .disabled = false) {
     auto &&[v2, ok2] = cr.try_register_type<Component<int, 0>>();
     cr_assert_not(ok2);
     cr_assert_eq(std::addressof(v1), std::addressof(v2));
+}
+
+Test(HexComponentRegistry, has_registered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    cr_assert((cr.has<Component<int, 0>>()));
+}
+
+Test(HexComponentRegistry, has_unregistered_type, .disabled = false) {
+    hex::components_registry cr;
+
+    cr.register_type<Component<int, 0>>();
+
+    cr_assert_not((cr.has<Component<int, 1>>()));
 }
 
 Test(HexComponentRegistry, get_registered_type, .disabled = false) {
