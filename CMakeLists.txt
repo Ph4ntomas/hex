@@ -21,7 +21,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 
 
-set(CMAKE_CTEST_ARGUMENTS --verbose)
+set(CMAKE_CTEST_ARGUMENTS --output-on-failure)
 enable_testing()
 add_subdirectory("tests")
 
