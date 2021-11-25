@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
 
-set(CMAKE_CTEST_ARGUMENTS --verbose)
 include(CTest)
 
 find_package(Criterion)
