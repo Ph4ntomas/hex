@@ -3,37 +3,25 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-10-29 12:28
-** \date Last update: 2021-11-11 23:53
+** \date Last update: 2021-12-05 17:38
 */
 
 #ifndef SPARSE_ARRAY_HPP_
 #define SPARSE_ARRAY_HPP_
 
-#include <algorithm>
-#include <memory>
-#include <optional>
-#include <stdexcept>
-#include <vector>
+#include <algorithm> // std::transform
+#include <initializer_list> // std::initializer_list
+#include <iterator> // std::iterator_traits
+#include <memory> // std::allocator
+#include <optional> // std::make_optional, std::nullopt, std::nullopt_t, std::optional
+#include <stdexcept> // std::out_of_range
+#include <type_traits> // std::decay, std::disjunction, std::enable_if, std::is_constructible, std::is_same
+#include <vector> // std::vector
+#include <utility> // std::forward
 
-namespace hex::meta {
-    template <class Iter>
-    using iterator_category_t = typename std::iterator_traits<Iter>::iterator_category;
-
-    template <class Iter>
-    using require_input_iterator = std::enable_if_t<std::is_convertible_v<iterator_category_t<Iter>, std::input_iterator_tag>>;
-
-    template <typename>
-    struct is_optional : std::false_type {};
-
-    template <typename T>
-    struct is_optional<std::optional<T>> : std::true_type {};
-
-    template <typename T>
-    static constexpr bool is_optional_v = is_optional<T>::value;
-}
+#include "hex/meta/type_traits.hpp"
 
 namespace hex::containers {
-
     template <typename T, typename Allocator = std::allocator<std::optional<T>>>
     class sparse_array : std::vector<std::optional<T>, Allocator> {
         static_assert(!std::is_same_v<T, std::nullopt_t>, "Component type cannot be std::nullopt_t");

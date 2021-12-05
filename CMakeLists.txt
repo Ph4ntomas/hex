@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(Hex VERSION 0.1.0
+project(Hex VERSION 1.0.1
             DESCRIPTION "A header only c++17 ECS implementation"
             HOMEPAGE_URL "https://github.com/Ph4ntomas/hex")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include_directories ("{CMAKE_CURRENT_SOURCE_DIR}/srcs")
+include_directories ("{CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -14,7 +14,7 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 include(GNUInstallDirs)
 
 target_include_directories(${PROJECT_NAME}
-    INTERFACE   $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/srcs>
+    INTERFACE   $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
                 $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
@@ -54,7 +54,7 @@ install(FILES   "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake
 )
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/srcs/hex DESTINATION include)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/hex DESTINATION include)
 
 IF(EXISTS "${PROJECT_SOURCE_DIR}/LICENSE")
     set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")

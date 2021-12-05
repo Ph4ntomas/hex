@@ -12,7 +12,7 @@ target_sources(Hex_sparse_array_tests
 )
 
 target_include_directories(Hex_sparse_array_tests
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/srcs>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
             ${CRITERION_INCLUDE_DIRS}
 )
@@ -43,7 +43,7 @@ target_sources(Hex_components_registry_tests
 )
 
 target_include_directories(Hex_components_registry_tests
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/srcs>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
             ${CRITERION_INCLUDE_DIRS}
 )
@@ -74,7 +74,7 @@ target_sources(Hex_entity_manager_tests
 )
 
 target_include_directories(Hex_entity_manager_tests
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/srcs>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
             ${CRITERION_INCLUDE_DIRS}
 )
@@ -105,7 +105,7 @@ target_sources(Hex_system_registry_tests
 )
 
 target_include_directories(Hex_system_registry_tests
-    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/srcs>
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
             ${CRITERION_INCLUDE_DIRS}
 )

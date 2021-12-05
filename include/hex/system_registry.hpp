@@ -3,19 +3,22 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-22 10:59
-** \date Last update: 2021-12-04 18:49
+** \date Last update: 2021-12-05 17:54
 */
 
 #ifndef SYSTEM_REGISTRY_HPP_
 #define SYSTEM_REGISTRY_HPP_
 
-#include <chrono>
-#include <memory>
-#include <type_traits>
+#include <functional> // std::function
+#include <memory> // std::shared_ptr
+#include <stdexcept> // std::invalid_argument
+#include <string> // std::string_literals;
+#include <type_traits> // std::enable_if, std::disjunction, std::is_same, std::negation_v, std::remove_cv_t, std::remove_reference_t
+#include <utility> // std::forward
+#include <vector> // std::vector
 
-#include "hex/entity_manager.hpp"
 #include "hex/components_registry.hpp"
-
+#include "hex/entity_manager.hpp"
 #include "hex/exceptions/unimplemented.hpp"
 #include "hex/exceptions/no_such_component.hpp"
 
@@ -56,29 +59,6 @@ namespace hex {
         template <> struct argument_helper<hex::system_registry> {
             using type = hex::system_registry;
         };
-    }
-
-    namespace meta {
-        template <typename> struct sparse_array_traits {};
-
-        template <typename T>
-        struct sparse_array_traits<hex::containers::sparse_array<T>>  {
-            using value_type = typename hex::containers::sparse_array<T>::value_type;
-        };
-
-        template <typename T>
-        using sparse_array_vt = typename sparse_array_traits<T>::value_type;
-
-        template <typename T> struct remove_sparse_array {
-            using type = T;
-        };
-
-        template <typename T> struct remove_sparse_array<hex::containers::sparse_array<T>> {
-            using type = T;
-        };
-
-        template <typename T>
-        using remove_sparse_array_t = typename remove_sparse_array<T>::type;
 
         template <typename, bool> struct sys_args_deduction_helper {};
 
@@ -104,6 +84,17 @@ namespace hex {
             static constexpr bool constness = true;
             static constexpr sys_args_deduction_helper<type, constness> helper{};
         };
+
+        template <typename T> struct remove_sparse_array {
+            using type = T;
+        };
+
+        template <typename T> struct remove_sparse_array<hex::containers::sparse_array<T>> {
+            using type = T;
+        };
+
+        template <typename T>
+        using remove_sparse_array_t = typename remove_sparse_array<T>::type;
     }
 
     struct check_t {};
@@ -146,7 +137,7 @@ namespace hex {
             template <class Callable>
             void register_system(Callable &&c) {
                 using callable_type = std::remove_cv_t<std::remove_reference_t<Callable>>;
-                return _do_register(std::forward<Callable>(c), meta::sys_signature<decltype(&callable_type::operator())>::helper);
+                return _do_register(std::forward<Callable>(c), __impl::sys_signature<decltype(&callable_type::operator())>::helper);
             }
 
             template <typename ...Args>
@@ -164,7 +155,7 @@ namespace hex {
             template <class Callable>
             void register_system(check_t, Callable &&c) {
                 using callable_type = std::remove_cv_t<std::remove_reference_t<Callable>>;
-                auto helper = meta::sys_signature<decltype(&callable_type::operator())>::helper;
+                auto helper = __impl::sys_signature<decltype(&callable_type::operator())>::helper;
 
                 _check_arguments(helper);
                 return _do_register(std::forward<Callable>(c), helper);
@@ -187,7 +178,7 @@ namespace hex {
             template <class Callable>
             void register_system(auto_register_t, Callable &&c) {
                 using callable_type = std::remove_cv_t<std::remove_reference_t<Callable>>;
-                auto helper = meta::sys_signature<decltype(&callable_type::operator())>::helper;
+                auto helper = __impl::sys_signature<decltype(&callable_type::operator())>::helper;
 
                 _register_arguments(helper);
                 return _do_register(std::forward<Callable>(c), helper);
@@ -208,7 +199,7 @@ namespace hex {
 
             template <typename Arg>
             void _check_arg() {
-                using _Arg = meta::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
+                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
                 using namespace std::string_literals;
 
                 if constexpr (std::negation_v<std::disjunction<
@@ -223,7 +214,7 @@ namespace hex {
 
             template <typename Arg>
             void _reg_arg() {
-                using _Arg = meta::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
+                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
 
                 _components->try_register_type<_Arg>();
             }
@@ -242,7 +233,7 @@ namespace hex {
             }
 
             template <typename Callable, typename... Args, bool constness>
-            void _do_register(Callable &&c, meta::sys_args_deduction_helper<void (Args...), constness>) {
+            void _do_register(Callable &&c, __impl::sys_args_deduction_helper<void (Args...), constness>) {
                 return _do_register<constness, Args...>(std::forward<Callable>(c));
             }
 
@@ -250,13 +241,13 @@ namespace hex {
             void _check_arguments() { (_check_arg<Args>(), ...); }
 
             template <typename... Args, bool _>
-            void _check_arguments(meta::sys_args_deduction_helper<void (Args...), _>) { _check_arguments<Args...>(); }
+            void _check_arguments(__impl::sys_args_deduction_helper<void (Args...), _>) { _check_arguments<Args...>(); }
 
             template <typename... Args>
-            void _register_arguments();// { (_reg_arg<Args>(), ...); }
+            void _register_arguments();
 
             template <typename... Args, bool _>
-            void _register_arguments(meta::sys_args_deduction_helper<void (Args...), _>) { _register_arguments<Args...>(); }
+            void _register_arguments(__impl::sys_args_deduction_helper<void (Args...), _>) { _register_arguments<Args...>(); }
 
         private:
             std::shared_ptr<components_registry> _components;
@@ -264,12 +255,12 @@ namespace hex {
             std::vector<caller_t> _systems;
     };
 
-    template <> void system_registry::_reg_arg<system_registry>() {}
-    template <> void system_registry::_reg_arg<entity_manager>() {}
-    template <> void system_registry::_reg_arg<components_registry>() {}
+    template <> inline void system_registry::_reg_arg<system_registry>() {}
+    template <> inline void system_registry::_reg_arg<entity_manager>() {}
+    template <> inline void system_registry::_reg_arg<components_registry>() {}
 
     template <typename... Args>
-    void system_registry::_register_arguments() {
+    inline void system_registry::_register_arguments() {
         (_reg_arg<std::remove_cv_t<std::remove_reference_t<Args>>>(), ...);
     }
 

@@ -3,22 +3,23 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-12 11:09
-** \date Last update: 2021-11-21 19:46
+** \date Last update: 2021-12-05 17:45
 */
 
 #ifndef COMPONENTS_REGISTRY_HPP_
 #define COMPONENTS_REGISTRY_HPP_
 
-#include <any>
-#include <cstddef>
-#include <optional>
-#include <typeinfo>
-#include <typeindex>
-#include <unordered_map>
+#include <any> // std::any, std::any_cast, std::make_any
+#include <cstddef> // std::size_t
+#include <functional> // std::function
+#include <typeinfo> // typeid
+#include <typeindex> // std::type_index
+#include <type_traits> // std::decay_t
+#include <unordered_map> // std::unordered_map
+#include <utility> // std::as_const, std::forward, std::function
 
 #include "hex/containers/sparse_array.hpp"
 #include "hex/exceptions/already_registered.hpp"
-#include "hex/exceptions/unimplemented.hpp"
 
 namespace hex {
     class components_registry {

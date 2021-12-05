@@ -3,24 +3,25 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-13 12:29
-** \date Last update: 2021-11-21 20:13
+** \date Last update: 2021-12-05 17:55
 */
 
 #ifndef ENTITY_MANAGER_HPP_
 #define ENTITY_MANAGER_HPP_
 
-#include <limits>
-#include <memory>
-#include <type_traits>
-#include <vector>
-
-#include "hex/containers/sparse_array.hpp"
-
-#include "hex/exceptions/already_dead.hpp"
-#include "hex/exceptions/no_such_entity.hpp"
-#include "hex/exceptions/unimplemented.hpp"
+#include <limits> // std::numeric_limits
+#include <cstddef> // std::size_t
+#include <memory> // std::shared_ptr
+#include <optional> // std::nullopt
+#include <stdexcept> // std::invalid_argument
+#include <string> // std::string_literals
+#include <utility> // std::forward
+#include <vector> // std::vector
 
 #include "hex/components_registry.hpp"
+#include "hex/containers/sparse_array.hpp"
+#include "hex/exceptions/already_dead.hpp"
+#include "hex/exceptions/no_such_entity.hpp"
 
 #ifndef HEX_TEST
     #define h_class class
@@ -94,16 +95,12 @@ namespace hex {
             }
 
             void kill(entity_t const &e) {
-                using namespace std::string_literals;
-
                 auto e2 = _throw_dead_entity(e, "kill");
 
                 _do_kill(e);
             }
 
             void kill_at(std::size_t id) {
-                using namespace std::string_literals;
-
                 auto e = _throw_dead_entity(id, "kill_at");
 
                 _do_kill(e);
