@@ -128,3 +128,33 @@ target_link_options(Hex_system_registry_tests
 
 add_test(NAME Hex_system_registry_tests COMMAND Hex_system_registry_tests --verbose)
 
+add_executable(Hex_zip_tests)
+
+target_sources(Hex_zip_tests
+    PRIVATE
+    hex/iterators/zip.cpp
+)
+
+target_include_directories(Hex_zip_tests
+    PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+            ${CRITERION_INCLUDE_DIRS}
+)
+
+target_compile_features(Hex_zip_tests PRIVATE cxx_std_17)
+
+target_compile_options(
+    Hex_zip_tests
+    PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:--coverage>
+            $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:-fprofile-arcs>
+)
+
+target_link_libraries(Hex_zip_tests 
+    PRIVATE ${CRITERION_LIBRARIES}
+)
+
+target_link_options(Hex_zip_tests 
+    PRIVATE $<$<OR:$<CXX_COMPILER_ID:GNU>, $<CXX_COMPILER_ID:Clang>>:--coverage>
+)
+
+add_test(NAME Hex_zip_tests COMMAND Hex_zip_tests --verbose)
