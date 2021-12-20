@@ -32,3 +32,6 @@
 *.app
 
 build/
+docs/html/
+
+docs/latex/
