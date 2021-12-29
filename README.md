@@ -21,7 +21,7 @@ To manage this, `Hex` provide four classes :
 - `context` : ensure these class are properly build, and expose a reference to each of these.
 
 ## Code Example
-```c++
+```cpp
 #include <iostream>
 
 #include <hex/hex.hpp>
