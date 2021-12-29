@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-09 11:08
-** \date Last update: 2021-12-11 17:26
+** \date Last update: 2021-12-29 20:24
 */
 
 #ifndef iterators_zip_hpp__
@@ -19,6 +19,9 @@
 #include "hex/utilities/indexer.hpp"
 
 namespace hex::iterators {
+    /**
+    ** \cond Internals
+    */
     namespace __impl {
         template <class Container>
         struct iterator_helper {
@@ -35,7 +38,20 @@ namespace hex::iterators {
                 static value_type to_value(value_type v) { return v; }
             };
     }
+    /**
+    ** \endcond
+    */
 
+    /**
+    ** \brief Iterate over several containers at once.
+    **
+    ** This iterator enable the use of range-based for loop or standard algorithm.
+    **
+    ** It work by storing iterators over specific containers, increasing these all at the same time, and skipping the ones where the optional evaluate to false.
+    ** Where dereferenced, the iterator return a tuple of reference, as if the tuple was created by dereferencing every iterator it stores.
+    **
+    ** \tparam Containers Type of the container to iterate over.
+    */
     template <class... Containers>
     class zip_iterator {
         public:
@@ -125,10 +141,21 @@ namespace hex::iterators {
             static constexpr std::index_sequence_for<Containers...> _idx_seq{};
     };
 
+    /**
+    ** \related zip_iterator
+    */
     template <class... Containers>
     void swap(zip_iterator<Containers...> &lhs, zip_iterator<Containers...> &rhs) noexcept(noexcept(lhs.swap(rhs)))
     { lhs.swap(rhs); }
 
+    /**
+    ** \brief Pseudo-container that enable multi-array iteration.
+    **
+    ** The purpose of this class is to enable the use of ranged-base for loop on several components at once.
+    ** The iterator produced skip indices for which at least one of the optional evaluate to false.
+    **
+    ** \tparam Containers Types of the container we want to iterate upon.
+    */
     template <class... Containers>
     class zip {
         public:
@@ -136,11 +163,23 @@ namespace hex::iterators {
             using iter_tuple = typename iterator::iter_tuple;
             using size_type = std::size_t;
 
+            /**
+            ** \brief Construct a zip from a list of containers
+            **
+            ** \param containers Parameter pack containing each container to iterate uppon.
+            */
             zip(Containers &... containers) : _size(_compute_size(containers...)), _begin(containers.begin()...), _end(_compute_end(_size, containers...)) {}
             zip(zip const &) = default;
             zip(zip &&) noexcept = default;
 
+            /**
+            ** \brief Get a zip_iterator to the beginning of this container.
+            */
             iterator begin() { return iterator{_begin, _size, this}; }
+
+            /**
+            ** \brief Get a zip_iterator to the end of this container.
+            */
             iterator end() { return iterator{_end, 0}; }
 
         private:
@@ -159,6 +198,11 @@ namespace hex::iterators {
             iter_tuple _end;
     };
 
+    /**
+    ** \brief Specialized version of zip, that provide index.
+    **
+    ** \tparam Containers Types of the container we want to iterate upon.
+    */
     template <class... Containers>
         class izip : public zip<utility::indexer_t, Containers...> {
             using base_t = zip<utility::indexer_t, Containers...>;
