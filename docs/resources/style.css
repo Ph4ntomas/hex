@@ -1,5 +1,9 @@
 /* The standard CSS for doxygen 1.8.18 */
 
+body {
+    min-height: 100vh;
+}
+
 body, table, div, p, dl {
     font: 400 14px/22px Roboto,sans-serif;
     background-color: #3b3b3b;
@@ -96,6 +100,10 @@ a.has-submenu span.sub-arrow {
     /*background: #3b3b3b;*/
     /*border: 1px solid #4d4d4d;*/
     /*box-shadow: 0 6px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 15px 0 rgba(0, 0, 0, 0.10);*/
+}
+
+.compoundTemplParams {
+    color: #b7b7b7;
 }
 
 /**************************/
