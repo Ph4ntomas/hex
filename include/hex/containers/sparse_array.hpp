@@ -241,7 +241,7 @@ namespace hex::containers {
 
             template <typename U = T>
             iterator insert_at(size_type pos, U && value) {
-                maybe_resize(pos);
+                _maybe_resize(pos);
 
                 base_t::at(pos) = std::forward<U>(value);
                 return base_t::begin() + pos;
@@ -251,7 +251,7 @@ namespace hex::containers {
                 std::is_constructible_v<value_type, Args...>
             >>
             iterator emplace_at(size_type pos, Args &&... args) {
-                maybe_resize(pos);
+                _maybe_resize(pos);
                 auto alloc = get_allocator();
 
                 using traits_t = std::allocator_traits<decltype(alloc)>;
@@ -268,7 +268,7 @@ namespace hex::containers {
                 !std::is_constructible_v<value_type, Args...>, bool
             > = true>
             iterator emplace_at(size_type pos, Args &&... args) {
-                maybe_resize(pos);
+                _maybe_resize(pos);
                 auto alloc = get_allocator();
 
                 using traits_t = std::allocator_traits<decltype(alloc)>;
@@ -298,7 +298,7 @@ namespace hex::containers {
             template <typename T_, class Allocator_> friend bool operator<=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
             template <typename T_, class Allocator_> friend bool operator>=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
         private:
-            void maybe_resize(size_type pos) {
+            void _maybe_resize(size_type pos) {
                 if (pos >= base_t::size())
                     base_t::resize(pos + 1);
             }
