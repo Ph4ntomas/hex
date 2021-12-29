@@ -291,12 +291,12 @@ namespace hex::containers {
             ** \@}
             */
 
-            template <typename T_, class Allocator_> friend bool operator==(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
-            template <typename T_, class Allocator_> friend bool operator!=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
-            template <typename T_, class Allocator_> friend bool operator<(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
-            template <typename T_, class Allocator_> friend bool operator>(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
-            template <typename T_, class Allocator_> friend bool operator<=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
-            template <typename T_, class Allocator_> friend bool operator>=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator==(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator!=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator<(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator>(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator<=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
+            //template <typename T_, class Allocator_> friend bool operator>=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
         private:
             void _maybe_resize(size_type pos) {
                 if (pos >= base_t::size())
