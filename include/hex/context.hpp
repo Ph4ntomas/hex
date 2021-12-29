@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-05 16:35
-** \date Last update: 2021-12-05 17:55
+** \date Last update: 2021-12-29 18:42
 */
 
 #ifndef CONTEXT_HPP_
@@ -16,25 +16,57 @@
 #include "hex/system_registry.hpp"
 
 namespace hex {
+    /**
+    ** \brief Hex context
+    **
+    ** Convenience class that construct and hold every part of the hex library.
+    */
     class context {
         public:
+            /**
+            ** \brief Default contructor.
+            */
             context() :
                 _components{std::make_shared<components_registry>()},
                 _entities{std::make_shared<entity_manager>(_components)},
                 _systems{std::make_shared<system_registry>(_entities, _components)}
             {}
             context(context const &) = delete;
+            /**
+            ** \brief Move constructor
+            */
             context(context &&oth) noexcept = default;
 
             context &operator=(context const &) = delete;
+            /**
+            ** \brief Move-assigment operator
+            */
             context &operator=(context &&rhs) noexcept = default;
 
+            /**
+            ** \brief Access components registry
+            */
             [[nodiscard]] components_registry &components() noexcept { return *_components; }
+            /**
+            ** \brief Access entity manager
+            */
             [[nodiscard]] entity_manager &entities() noexcept { return *_entities; }
+            /**
+            ** \brief Access system registry
+            */
             [[nodiscard]] system_registry &systems() noexcept { return *_systems; }
 
+            /**
+            ** \brief Access components registry
+            */
             [[nodiscard]] components_registry const &components() const noexcept { return *_components; }
+            /**
+            ** \brief Access entity manager
+            */
             [[nodiscard]] entity_manager const &entities() const noexcept { return *_entities; }
+            /**
+            ** \brief Access system registry
+            */
             [[nodiscard]] system_registry const &systems() const noexcept { return *_systems; }
 
         private:
