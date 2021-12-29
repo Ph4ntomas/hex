@@ -2,7 +2,7 @@
 ** \file indexer.hpp
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-11 15:46
-** \date Last update: 2021-12-11 17:07
+** \date Last update: 2021-12-29 20:26
 */
 
 #ifndef utility_indexer_hpp__
@@ -14,6 +14,9 @@
 #include <type_traits>
 
 namespace hex::utility {
+    /**
+    ** \brief Iterator that always return the index. To be used with zip.
+    */
     class indexer_iterator {
         public:
             using value_type = std::size_t;
@@ -75,10 +78,18 @@ namespace hex::utility {
             bool _is_end;
     };
 
+    /**
+    ** \relates indexer_iterator
+    */
     void swap(indexer_iterator &lhs, indexer_iterator &rhs) {
         lhs.swap(rhs);
     }
 
+    /**
+    ** \brief Pseudo container whose iterators always return their current index. To be used with zip
+    **
+    ** \see zip
+    */
     struct indexer_t {
         std::size_t size() const { return std::numeric_limits<std::size_t>::max(); }
         indexer_iterator begin() { return {}; }
