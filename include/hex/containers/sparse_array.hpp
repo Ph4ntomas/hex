@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-10-29 12:28
-** \date Last update: 2021-12-05 17:38
+** \date Last update: 2021-12-29 19:32
 */
 
 #ifndef SPARSE_ARRAY_HPP_
@@ -22,6 +22,13 @@
 #include "hex/meta/type_traits.hpp"
 
 namespace hex::containers {
+    /**
+    ** \brief Non packed array.
+    **
+    ** This class is an array of optional values.
+    **
+    ** \see SparseArrayDeduc
+    */
     template <typename T, typename Allocator = std::allocator<std::optional<T>>>
     class sparse_array : std::vector<std::optional<T>, Allocator> {
         static_assert(!std::is_same_v<T, std::nullopt_t>, "Component type cannot be std::nullopt_t");
@@ -161,8 +168,8 @@ namespace hex::containers {
 
             /**
             ** \name Element access
-            ** \@{
             */
+            /** @{ */
             using base_t::at;
             //[[nodiscard]] reference at(size_type pos);
             //[[nodiscard]] const_reference at(size_type pos) const;
@@ -189,14 +196,12 @@ namespace hex::containers {
 
                 return diff;
             }
-            /**
-            ** \@}
-            */
+            /** @} */
 
             /**
             ** \name Iterators
-            ** \@{
-            **/
+            */
+            /** @{ */
             using base_t::begin;
             using base_t::cbegin;
             //[[nodiscard]] iterator begin() noexcept;
@@ -208,14 +213,12 @@ namespace hex::containers {
             //[[nodiscard]] iterator end() noexcept;
             //[[nodiscard]] const_iterator end() const noexcept;
             //[[nodiscard]] const_iterator cend() const noexcept;
-            /**
-            ** \@}
-            */
+            /** @} */
 
             /**
             ** \name Capacity
-            ** \@{
-            **/
+            */
+            /** @{ */
             using base_t::empty;
             using base_t::size;
             using base_t::max_size;
@@ -228,14 +231,12 @@ namespace hex::containers {
             //void reserve(size_type new_cap);
             //[[nodiscard]] size_type capacity() const noexcept;
             //void shrink_to_fit();
-            /**
-            ** \@}
-            */
+            /** @} */
 
             /**
             ** \name Modifier
-            ** \@{
-            **/
+            */
+            /** @{ */
             using base_t::clear;
             //void clear() noexcept;
 
@@ -287,9 +288,7 @@ namespace hex::containers {
 
             using base_t::resize;
             using base_t::swap;
-            /**
-            ** \@}
-            */
+            /** @} */
 
             //template <typename T_, class Allocator_> friend bool operator==(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
             //template <typename T_, class Allocator_> friend bool operator!=(sparse_array<T_, Allocator_> const &lhs, sparse_array<T_, Allocator_> const &rhs);
@@ -304,7 +303,12 @@ namespace hex::containers {
             }
     };
 
-
+    /**
+    ** \defgroup SparseArrayDeduc Sparse array deduction guides
+    **
+    ** These deduction guide are provided to allow deduction from iterators, or values.
+    */
+    /** @{ */
     template <typename T, typename = std::enable_if_t<!meta::is_optional_v<T>>>
     sparse_array(size_t count, T) -> sparse_array<T>;
 
@@ -356,48 +360,78 @@ namespace hex::containers {
 
     template <typename T, class Allocator = std::allocator<std::optional<T>>>
     sparse_array(std::initializer_list<std::optional<T>>) -> sparse_array<T, Allocator>;
+    /** @} */
 
     /**
-    ** \name Non-member functions
-    ** \@{
-    **/
+    ** \brief Equality comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator==(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs == (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
 
+    /**
+    ** \brief Inequality comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator!=(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs != (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
 
+    /**
+    ** \brief Less-than comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator<(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs < (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
 
+    /**
+    ** \brief More-than comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator>(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs > (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
+
+    /**
+    ** \brief Less-than-or-equal comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator<=(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs <= (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
+
+    /**
+    ** \brief More-than-or-equal comparison operator
+    **
+    ** \relates sparse_array
+    */
     template <typename T, class Allocator>
     [[nodiscard]] inline bool operator>=(sparse_array<T, Allocator> const &lhs, sparse_array<T, Allocator> const &rhs) {
         return (typename sparse_array<T, Allocator>::base_t const &)lhs >= (typename sparse_array<T, Allocator>::base_t const &)rhs;
     }
-    /**
-    ** \@}
-    */
-}
 
-namespace std {
+    /**
+    ** \brief Swap two containers.
+    */
     template <typename T, class Allocator>
     void swap(hex::containers::sparse_array<T, Allocator> &lhs, hex::containers::sparse_array<T, Allocator> &rhs) {
         return lhs.swap(rhs);
     }
+}
+
+namespace std {
 }
 
 #endif /* end of include guard: SPARSE_ARRAY_HPP_ */
