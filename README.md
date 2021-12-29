@@ -99,7 +99,6 @@ In my opinion, `Hex` is in a usable state right now.
 
 However I have some planned feature/changes still in the making:
 - Rework sparse arrays to be more space-efficient (they are implemented as a vector of optional at the moment)
-- Implements some way to `zip` Sparse Array to iterate on several components at the same time, and reduce boiler-plate code
 - Include an event dispatcher in the context, that would be available to the systems at all time.
 
 ## Contributions
