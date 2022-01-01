@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-23 23:06
-** \date Last update: 2021-12-04 18:51
+** \date Last update: 2022-01-02 13:29
 */
 
 #include <criterion/criterion.h>
@@ -23,7 +23,8 @@ namespace fsystems = systems::functions;
 struct position { int x; int y; };
 struct velocity { int vx; int vy; };
 
-hex::system_registry make_system_registry() {
+template <class ...Args>
+hex::system_registry<Args...> make_system_registry() {
     auto cr = std::make_shared<hex::components_registry>();
     auto em = std::make_shared<hex::entity_manager>(cr);
 
@@ -42,7 +43,7 @@ hex::system_registry make_system_registry() {
         em->spawn_with(velocity{ 1, 2 });
     }
 
-    return hex::system_registry{em, cr};
+    return hex::system_registry<Args...>{em, cr};
 }
 
 void empty() {}
@@ -378,4 +379,17 @@ Test(HexSystemRegistry, register_and_run_function_register_args, .disabled = fal
     cr_assert_eq(systems::shared().count, 3);
     cr_assert(fsystems::called());
     cr_assert(ran);
+}
+
+struct arbitratry {
+    int val = 10;
+};
+
+Test(HexSystemRegistry, run_with_arbitrary_args, .disabled = false) {
+    auto s = make_system_registry<arbitratry>();
+    auto a = arbitratry{};
+
+    s.register_system<arbitratry>([](auto & arb) { cr_assert((std::is_same_v<arbitratry &, decltype(arb)>)); });
+
+    s.run(a);
 }

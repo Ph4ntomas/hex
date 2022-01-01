@@ -2,8 +2,8 @@
 ** \file system_registry.hpp
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
-** \date Created on: 2021-11-22 10:59
-** \date Last update: 2021-12-29 18:32
+** \date Created on: 2022-01-01 18:34
+** \date Last update: 2022-01-02 13:51
 */
 
 #ifndef SYSTEM_REGISTRY_HPP_
@@ -23,44 +23,110 @@
 #include "hex/exceptions/no_such_component.hpp"
 
 namespace hex {
-    class system_registry;
+    template <class ...> class system_registry;
 
     /**
     ** \cond Internals
     */
     namespace __impl {
-        template <typename T> struct Getter {};
+        template <class, typename> struct Getter {};
 
-        template <> struct Getter<system_registry> { inline static system_registry &get(system_registry &sr, entity_manager & em, components_registry &cr) { return sr; } };
-        template <> struct Getter<entity_manager> { inline static entity_manager &get(system_registry &sr, entity_manager & em, components_registry &cr) { return em; } };
-        template <> struct Getter<components_registry> { inline static components_registry &get(system_registry &sr, entity_manager & em, components_registry &cr) { return cr; } };
-        template <typename T> struct Getter<containers::sparse_array<T>> { inline static containers::sparse_array<T> &get(system_registry &sr, entity_manager & em, components_registry &cr) { return cr.get<T>(); } };
+        template <class ...Args> struct Getter<system_registry<Args...>, system_registry<Args...>> {
+            inline static system_registry<Args...> &get(
+                    system_registry<Args...> &sr,
+                    entity_manager &em,
+                    components_registry &cr,
+                    std::tuple<Args &...> const & args) {
+                return sr;
+            }
+        };
 
-        template <typename T> struct argument_helper {
+        template <class ...Args> struct Getter<system_registry<Args...>, entity_manager> {
+            inline static entity_manager &get(
+                    system_registry<Args...> &sr,
+                    entity_manager &em,
+                    components_registry &cr,
+                    std::tuple<Args &...> const &args) {
+                return em;
+            }
+        };
+
+        template <class ...Args> struct Getter<system_registry<Args...>, components_registry> {
+            inline static components_registry &get(
+                    system_registry<Args...> &sr,
+                    entity_manager &em,
+                    components_registry &cr,
+                    std::tuple<Args &...> const &args) {
+                return cr;
+            }
+        };
+
+        template <class ...Args, class T> struct Getter<system_registry<Args...>, containers::sparse_array<T>> {
+            inline static containers::sparse_array<T> &get(
+                    system_registry<Args...> &sr,
+                    entity_manager &em,
+                    components_registry &cr,
+                    std::tuple<Args &...> const &args) {
+                return cr.get<T>();
+            }
+        };
+
+        template <class ...Args, class T> struct Getter<system_registry<Args...>, T> {
+            inline static T &get(
+                    system_registry<Args...> &sr,
+                    entity_manager &em,
+                    components_registry &cr,
+                    std::tuple<Args &...> const &args) {
+                return std::get<T &>(args);
+            }
+        };
+
+        template <typename T, bool> struct base_argument_helper {};
+
+        template <typename T> struct base_argument_helper<T, true> {
+            using type = T;
+        };
+
+        template <typename T> struct base_argument_helper<T, false> {
             using type = hex::containers::sparse_array<T>;
         };
 
-        template <typename T>
-        using argument_helper_t = typename argument_helper<T>::type;
+        template <typename, typename> struct argument_helper {
+        };
 
-        template <typename T> struct argument_helper<hex::containers::sparse_array<T>> {
+        template <typename SR, typename T>
+        using argument_helper_t = typename argument_helper<SR, T>::type;
+
+        template <class... Args, typename T>
+        struct argument_helper<system_registry<Args...>, hex::containers::sparse_array<T>> {
             using type = hex::containers::sparse_array<T>;
         };
 
-        template <typename T, typename Allocator> struct argument_helper<hex::containers::sparse_array<T, Allocator>> {
+        template <class... Args, typename T>
+            struct argument_helper<system_registry<Args...>, T> {
+                using type = std::conditional_t<
+                    std::disjunction_v<std::is_same<std::remove_cv_t<std::remove_reference_t<T>>, std::remove_cv_t<std::remove_reference_t<Args>>>...>,
+                    T,
+                    hex::containers::sparse_array<T>
+                >;
+            };
+
+        template <class... Args, typename T, typename Allocator>
+        struct argument_helper<system_registry<Args...>, hex::containers::sparse_array<T, Allocator>> {
             using type = hex::containers::sparse_array<T, Allocator>;
         };
 
-        template <> struct argument_helper<hex::entity_manager> {
+        template <class... Args> struct argument_helper<system_registry<Args...>, hex::entity_manager> {
             using type = hex::entity_manager;
         };
 
-        template <> struct argument_helper<hex::components_registry> {
+        template <class... Args> struct argument_helper<system_registry<Args...>, hex::components_registry> {
             using type = hex::components_registry;
         };
 
-        template <> struct argument_helper<hex::system_registry> {
-            using type = hex::system_registry;
+        template <class... Args>
+        struct argument_helper<hex::system_registry<Args...>, hex::system_registry<Args...>> {
+            using type = hex::system_registry<Args...>;
         };
 
         template <typename, bool> struct sys_args_deduction_helper {};
@@ -132,6 +198,8 @@ namespace hex {
     ** The main purpose of this class is to simplify system handling, as well as removing most boilerplate code.
     ** Systems are first registered to it, then called in order upon a call to system_registry::run.
     **
+    ** \tparam Args Additional parameters for the systems that the function run() will be called with.
+    **
     ** \section system_registration System Registration
     ** System are registered through the use of one of the system_registry::register_system function overload.
     ** Any [Callable](https://en.cppreference.com/w/cpp/named_req/Callable) or free function can be used as a system.
@@ -155,13 +223,15 @@ namespace hex {
     **
     ** \see SystemRegistryTag
     */
+    template <class... Args>
     class system_registry {
         public:
-            template <typename... Args>
-            using system_fptr_t = void (*)(Args...);
+            template <typename... As>
+            using system_fptr_t = void (*)(As...);
 
         private:
-            using caller_t = std::function<void (system_registry &)>;
+            using caller_t = std::function<void (system_registry &, std::tuple<Args &...> const &)>;
+            using Self = system_registry;
 
         public:
             /**
@@ -195,12 +265,17 @@ namespace hex {
             /** @{ */
             /**
             ** \brief Call registered system in order.
+            **
+            ** \tparam Args Additional parameters that can be used by the systems
+            **
+            ** \param [in] as Parameter pack containing additional parameters to supply to the systems.
             */
-            void run() {
+            void run(Args &... as) {
+                auto run_args = std::tie(as...);
                 for (auto &f: _systems)
-                    f(*this);
+                    f(*this, run_args);
             }
-            /** @{ */
+            /** @} */
 
             /**
             ** \name System registration
@@ -208,14 +283,23 @@ namespace hex {
             /** @{ */
             /**
             ** \brief System registration with explicit parameter types.
+            **
+            ** \param [in] c System to register.
+            **
+            ** \tparam As Callable parameter list.
+            ** \tparam Callable Type of the system to register.
             */
-            template <typename... Args, class Callable, typename = std::enable_if_t<sizeof...(Args) != 0>>
+            template <typename... As, class Callable, typename = std::enable_if_t<sizeof...(As) != 0>>
             void register_system(Callable &&c) {
-                return _do_register<false, Args...>(std::forward<Callable>(c));
+                return _do_register<false, As...>(std::forward<Callable>(c));
             }
 
             /**
             ** \brief System registration with deduced parameter types.
+            **
+            ** \param [in] c System to register.
+            **
+            ** \tparam Callable Type of the system.
             */
             template <class Callable>
             void register_system(Callable &&c) {
@@ -225,27 +309,42 @@ namespace hex {
 
             /**
             ** \brief System registration for free function.
+            **
+            ** \param [in] f System's function pointer.
+            **
+            ** \tparam As Systems parameters types.
             */
-            template <typename ...Args>
-            void register_system(system_fptr_t<Args...> const f) {
-                return _do_register<true, Args...>(f);
+            template <typename ...As>
+            void register_system(system_fptr_t<As...> const f) {
+                return _do_register<true, As...>(f);
             }
 
             /**
             ** \brief System registration with explicit parameter types, and component registration check.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] c System to register.
+            **
+            ** \tparam As Callable parameter list.
+            ** \tparam Callable Type of the system to register.
             */
-            template <typename... Args, class Callable, typename = std::enable_if_t<sizeof...(Args) != 0>>
-            void register_system(check_t, Callable &&c) {
-                _check_arguments<Args...>();
+            template <typename... As, class Callable, typename = std::enable_if_t<sizeof...(As) != 0>>
+            void register_system([[maybe_unused]]check_t t, Callable &&c) {
+                _check_arguments<As...>();
 
-                return _do_register<false, Args...>(std::forward<Callable>(c));
+                return _do_register<false, As...>(std::forward<Callable>(c));
             }
 
             /**
             ** \brief System registration with deduced parameter types, and component regisration check.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] c System to register.
+            **
+            ** \tparam Callable Type of the system.
             */
             template <class Callable>
-            void register_system(check_t, Callable &&c) {
+            void register_system([[maybe_unused]]check_t t, Callable &&c) {
                 using callable_type = std::remove_cv_t<std::remove_reference_t<Callable>>;
                 auto helper = __impl::sys_signature<decltype(&callable_type::operator())>::helper;
 
@@ -255,29 +354,45 @@ namespace hex {
 
             /**
             ** \brief System registration for free function, with component registration check.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] f System's function pointer.
+            **
+            ** \tparam As Systems parameters types.
             */
-            template <typename ...Args>
-            void register_system(check_t, system_fptr_t<Args...> const f) {
-                _check_arguments<Args...>();
+            template <typename ...As>
+            void register_system([[maybe_unused]]check_t t, system_fptr_t<As...> const f) {
+                _check_arguments<As...>();
 
-                return _do_register<true, Args...>(f);
+                return _do_register<true, As...>(f);
             }
 
             /**
             ** \brief System registration with explicit parameter types, and component auto-registration.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] c System to register.
+            **
+            ** \tparam As Callable parameter list.
+            ** \tparam Callable Type of the system to register.
             */
-            template <typename... Args, class Callable, typename = std::enable_if_t<sizeof...(Args) != 0>>
-            void register_system(auto_register_t, Callable &&c) {
-                _register_arguments<Args...>();
+            template <typename... As, class Callable, typename = std::enable_if_t<sizeof...(As) != 0>>
+            void register_system([[maybe_unused]]auto_register_t t, Callable &&c) {
+                _register_arguments<As...>();
 
-                return _do_register<false, Args...>(std::forward<Callable>(c));
+                return _do_register<false, As...>(std::forward<Callable>(c));
             }
 
             /**
             ** \brief System registration with deduced parameter types and component auto-registration.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] c System to register.
+            **
+            ** \tparam Callable Type of the system.
             */
             template <class Callable>
-            void register_system(auto_register_t, Callable &&c) {
+            void register_system([[maybe_unused]]auto_register_t t, Callable &&c) {
                 using callable_type = std::remove_cv_t<std::remove_reference_t<Callable>>;
                 auto helper = __impl::sys_signature<decltype(&callable_type::operator())>::helper;
 
@@ -287,30 +402,36 @@ namespace hex {
 
             /**
             ** \brief System registration for free function, with component auto-registration.
+            **
+            ** \param [in] t Disambiguation tag.
+            ** \param [in] f System's function pointer.
+            **
+            ** \tparam As Systems parameters types.
             */
-            template <typename ...Args>
-            void register_system(auto_register_t, system_fptr_t<Args...> const f) {
-                _register_arguments<Args...>();
+            template <typename ...As>
+            void register_system([[maybe_unused]]auto_register_t t, system_fptr_t<As...> const f) {
+                _register_arguments<As...>();
 
-                return _do_register<true, Args...>(f);
+                return _do_register<true, As...>(f);
             }
             /** @} */
         private:
             template <typename Arg>
-            auto &_get_arg() {
-                using _Arg = __impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>;
-                return __impl::Getter<_Arg>::get(*this, *_entities, *_components);
+            auto &_get_arg(std::tuple<Args &...> const & run_args) {
+                using _Arg = __impl::argument_helper_t<Self, std::remove_cv_t<std::remove_reference_t<Arg>>>;
+                return __impl::Getter<Self, _Arg>::get(*this, *_entities, *_components, run_args);
             }
 
             template <typename Arg>
             void _check_arg() {
-                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
+                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<Self, std::remove_cv_t<std::remove_reference_t<Arg>>>>;
                 using namespace std::string_literals;
 
                 if constexpr (std::negation_v<std::disjunction<
                     std::is_same<_Arg, system_registry>,
                     std::is_same<_Arg, entity_manager>,
-                    std::is_same<_Arg, components_registry>
+                    std::is_same<_Arg, components_registry>,
+                    std::is_same<_Arg, std::remove_cv_t<std::remove_reference_t<Args>>>...
                 >>) {
                     if (!_components->has<_Arg>())
                         throw hex::exceptions::no_such_component(typeid(Arg).name() + " has not been registered."s);
@@ -319,55 +440,55 @@ namespace hex {
 
             template <typename Arg>
             void _reg_arg() {
-                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<std::remove_cv_t<std::remove_reference_t<Arg>>>>;
+                using _Arg = __impl::remove_sparse_array_t<__impl::argument_helper_t<Self, std::remove_cv_t<std::remove_reference_t<Arg>>>>;
 
-                _components->try_register_type<_Arg>();
+                if constexpr (std::negation_v<std::disjunction<
+                    std::is_same<_Arg, system_registry>,
+                    std::is_same<_Arg, entity_manager>,
+                    std::is_same<_Arg, components_registry>,
+                    std::is_same<_Arg, std::remove_cv_t<std::remove_reference_t<Args>>>...
+                >>) {
+                    _components->try_register_type<_Arg>();
+                }
             }
 
-            template <bool constness, typename ...Args, typename Callable>
+            template <bool constness, typename ...As, typename Callable>
             void _do_register(Callable &&c) {
                 if constexpr (constness)
-                    _systems.emplace_back([sys=std::forward<Callable>(c)](system_registry &sr ) {
-                        return sys(sr._get_arg<Args>()...);
+                    _systems.emplace_back([sys=std::forward<Callable>(c)](system_registry &sr, std::tuple<Args &...> const & run_args) {
+                        return sys(sr._get_arg<As>(run_args)...);
                     });
                 else {
-                    _systems.emplace_back([sys=std::forward<Callable>(c)] (system_registry &sr) mutable {
-                        return sys(sr._get_arg<Args>()...);
+                    _systems.emplace_back([sys=std::forward<Callable>(c)] (system_registry &sr, std::tuple<Args &...> const & run_args) mutable {
+                        return sys(sr._get_arg<As>(run_args)...);
                     });
                 }
             }
 
-            template <typename Callable, typename... Args, bool constness>
-            void _do_register(Callable &&c, __impl::sys_args_deduction_helper<void (Args...), constness>) {
-                return _do_register<constness, Args...>(std::forward<Callable>(c));
+            template <typename Callable, typename... As, bool constness>
+            void _do_register(Callable &&c, __impl::sys_args_deduction_helper<void (As...), constness>) {
+                return _do_register<constness, As...>(std::forward<Callable>(c));
             }
 
-            template <typename... Args>
-            void _check_arguments() { (_check_arg<Args>(), ...); }
+            template <typename... As>
+            void _check_arguments() { (_check_arg<As>(), ...); }
 
-            template <typename... Args, bool _>
-            void _check_arguments(__impl::sys_args_deduction_helper<void (Args...), _>) { _check_arguments<Args...>(); }
+            template <typename... As, bool _>
+            void _check_arguments(__impl::sys_args_deduction_helper<void (As...), _>) { _check_arguments<As...>(); }
 
-            template <typename... Args>
-            void _register_arguments();
+            template <typename... As>
+                void _register_arguments() {
+                    (_reg_arg<std::remove_cv_t<std::remove_reference_t<As>>>(), ...);
+                }
 
-            template <typename... Args, bool _>
-            void _register_arguments(__impl::sys_args_deduction_helper<void (Args...), _>) { _register_arguments<Args...>(); }
+            template <typename... As, bool _>
+            void _register_arguments(__impl::sys_args_deduction_helper<void (As...), _>) { _register_arguments<As...>(); }
 
         private:
             std::shared_ptr<components_registry> _components;
             std::shared_ptr<entity_manager> _entities;
             std::vector<caller_t> _systems;
     };
-
-    template <> inline void system_registry::_reg_arg<system_registry>() {}
-    template <> inline void system_registry::_reg_arg<entity_manager>() {}
-    template <> inline void system_registry::_reg_arg<components_registry>() {}
-
-    template <typename... Args>
-    inline void system_registry::_register_arguments() {
-        (_reg_arg<std::remove_cv_t<std::remove_reference_t<Args>>>(), ...);
-    }
 }
 
 #endif /* end of include guard: SYSTEM_REGISTRY_HPP_ */
