@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-05 16:35
-** \date Last update: 2021-12-29 18:42
+** \date Last update: 2022-01-02 13:54
 */
 
 #ifndef CONTEXT_HPP_
@@ -20,7 +20,10 @@ namespace hex {
     ** \brief Hex context
     **
     ** Convenience class that construct and hold every part of the hex library.
+    **
+    ** \tparam SystemRunArgs Arbitrary list of parameters that will be accessible to systems.
     */
+    template <class... SystemRunArgs>
     class context {
         public:
             /**
@@ -29,7 +32,7 @@ namespace hex {
             context() :
                 _components{std::make_shared<components_registry>()},
                 _entities{std::make_shared<entity_manager>(_components)},
-                _systems{std::make_shared<system_registry>(_entities, _components)}
+                _systems{std::make_shared<system_registry<SystemRunArgs...>>(_entities, _components)}
             {}
             context(context const &) = delete;
             /**
@@ -54,7 +57,7 @@ namespace hex {
             /**
             ** \brief Access system registry
             */
-            [[nodiscard]] system_registry &systems() noexcept { return *_systems; }
+            [[nodiscard]] system_registry<SystemRunArgs...> &systems() noexcept { return *_systems; }
 
             /**
             ** \brief Access components registry
@@ -67,12 +70,12 @@ namespace hex {
             /**
             ** \brief Access system registry
             */
-            [[nodiscard]] system_registry const &systems() const noexcept { return *_systems; }
+            [[nodiscard]] system_registry<SystemRunArgs...> const &systems() const noexcept { return *_systems; }
 
         private:
             std::shared_ptr<components_registry> _components;
             std::shared_ptr<entity_manager> _entities;
-            std::shared_ptr<system_registry> _systems;
+            std::shared_ptr<system_registry<SystemRunArgs...>> _systems;
     };
 }
 

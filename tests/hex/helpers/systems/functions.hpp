@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-04 15:24
-** \date Last update: 2021-12-04 15:51
+** \date Last update: 2022-01-02 13:22
 */
 
 #ifndef FUNCTIONS_H
@@ -36,8 +36,8 @@ namespace hex::test::systems::functions {
         called() = true;
     }
 
-    template <size_t order>
-    void system_check_order(system_registry const &, containers::sparse_array<velocity> &) {
+    template <size_t order, class... Args>
+    void system_check_order(system_registry<Args...> const &, containers::sparse_array<velocity> &) {
         cr_expect_eq(counter(), order, "Bad call order.");
 
         ++(counter());
