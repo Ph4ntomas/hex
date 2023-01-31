@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-23 23:06
-** \date Last update: 2022-01-02 13:29
+** \date Last update: 2023-01-31 11:08
 */
 
 #include <criterion/criterion.h>
@@ -288,7 +288,7 @@ Test(HexSystemRegistry, register_function_check_args_bad_arg_should_throw, .disa
     auto s = hex::system_registry(em, cr);
 
     cr_assert_throw(s.register_system(hex::check, fsystems::system_check_is_called), hex::exceptions::no_such_component);
-    cr_assert_throw(s.register_system(hex::check, systems::functor_check_called{}), hex::exceptions::no_such_component);
+    cr_assert_throw(s.register_system(hex::check, systems::functor_check_called_components{}), hex::exceptions::no_such_component);
     cr_assert_throw(s.register_system<position>(hex::check, [](auto &){}), hex::exceptions::no_such_component);
 }
 
