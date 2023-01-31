@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-14 18:06
-** \date Last update: 2021-11-21 20:11
+** \date Last update: 2023-01-31 11:28
 */
 
 #include <criterion/criterion.h>
@@ -876,14 +876,14 @@ Test(HexEntityManager, remove_unregistered_component_should_throw, .disabled = f
     cr_assert_throw(em.remove_component<position>(e), std::out_of_range);
 }
 
-Test(HexEntityManager, remove_unadded_component_should_throw, .disabled = false) {
+Test(HexEntityManager, remove_unadded_component_should_not_throw, .disabled = false) {
     auto cr = make_cr<position>();
 
     hex::entity_manager em(cr);
 
     auto e = em.spawn();
 
-    cr_assert_throw(em.remove_component<position>(e), std::out_of_range);
+    cr_assert_no_throw(em.remove_component<position>(e), std::out_of_range);
 }
 
 Test(HexEntityManager, remove_component_by_id, .disabled = false) {
@@ -905,14 +905,14 @@ Test(HexEntityManager, remove_unregistered_component_by_id_should_throw, .disabl
 
     cr_assert_throw(em.remove_component<position>(0), std::out_of_range);
 }
-Test(HexEntityManager, remove_unadded_component_by_id_should_throw, .disabled = false) {
+Test(HexEntityManager, remove_unadded_component_by_id_should_not_throw, .disabled = false) {
     auto cr = make_cr<position>();
 
     hex::entity_manager em(cr);
 
     auto e = em.spawn();
 
-    cr_assert_throw(em.remove_component<position>(0), std::out_of_range);
+    cr_assert_no_throw(em.remove_component<position>(0), std::out_of_range);
 }
 
 Test(HexEntityManager, remove_component_bad_id_should_throw, .disabled = false) {
