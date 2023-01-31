@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2022-01-01 18:34
-** \date Last update: 2022-01-02 13:51
+** \date Last update: 2023-01-31 11:08
 */
 
 #ifndef SYSTEM_REGISTRY_HPP_
@@ -316,7 +316,7 @@ namespace hex {
             */
             template <typename ...As>
             void register_system(system_fptr_t<As...> const f) {
-                return _do_register<true, As...>(f);
+                return _do_register<true, As...>(std::move(f));
             }
 
             /**
@@ -364,7 +364,7 @@ namespace hex {
             void register_system([[maybe_unused]]check_t t, system_fptr_t<As...> const f) {
                 _check_arguments<As...>();
 
-                return _do_register<true, As...>(f);
+                return _do_register<true, As...>(std::move(f));
             }
 
             /**
@@ -412,7 +412,7 @@ namespace hex {
             void register_system([[maybe_unused]]auto_register_t t, system_fptr_t<As...> const f) {
                 _register_arguments<As...>();
 
-                return _do_register<true, As...>(f);
+                return _do_register<true, As...>(std::move(f));
             }
             /** @} */
         private:
@@ -454,13 +454,14 @@ namespace hex {
 
             template <bool constness, typename ...As, typename Callable>
             void _do_register(Callable &&c) {
+                struct { Callable sys; } call = { std::forward<Callable>(c) };
                 if constexpr (constness)
-                    _systems.emplace_back([sys=std::forward<Callable>(c)](system_registry &sr, std::tuple<Args &...> const & run_args) {
-                        return sys(sr._get_arg<As>(run_args)...);
+                    _systems.emplace_back([call = std::move(call)](system_registry &sr, std::tuple<Args &...> const & run_args) {
+                        return call.sys(sr._get_arg<As>(run_args)...);
                     });
                 else {
-                    _systems.emplace_back([sys=std::forward<Callable>(c)] (system_registry &sr, std::tuple<Args &...> const & run_args) mutable {
-                        return sys(sr._get_arg<As>(run_args)...);
+                    _systems.emplace_back([call= std::move(call)] (system_registry &sr, std::tuple<Args &...> const & run_args) mutable {
+                        return call.sys(sr._get_arg<As>(run_args)...);
                     });
                 }
             }

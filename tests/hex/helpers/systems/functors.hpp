@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-04 15:58
-** \date Last update: 2021-12-04 16:14
+** \date Last update: 2023-01-31 10:54
 */
 
 #ifndef FUNCTORS_H
@@ -33,6 +33,13 @@ namespace hex::test::systems {
 
     struct functor_check_called : base_functor {
         void operator()(hex::components_registry &) {
+            was_called = true;
+        }
+    };
+
+
+    struct functor_check_called_components : base_functor {
+        void operator()(hex::components_registry &, containers::sparse_array<position> const &) {
             was_called = true;
         }
     };
