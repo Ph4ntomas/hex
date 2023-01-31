@@ -11,14 +11,14 @@ The three building blocks are :
 
 Here is how `Hex` implements this pattern:
 - Entities are an opaque class that is convertible to a std::size_t. They should be created by `Hex` `entity_manager` class.
-- Components can be anything, and are stored internally in sparse array, a type of container that store it's data sequentially, but that can contain holes.
+- Components can be anything, and are stored internally in sparse array, a type of container that store its data sequentially, but that can contain holes.
 - Systems are up to the user to write.
 
 To manage this, `Hex` provide four classes :
 - `entity_manager` : Create, manage and recycle entities. This class can be used to check whether an entity is alive or not, as well as to add components to it, or kill it. It also recycle "old" id, so the components array are kept somewhat packed.
 - `component_registry` : store components arrays. Components type **must** be registered to the registry before being used.
 - `system_manager` : provide a convenient way to run systems. It provide methods that automatically deduces the systems parameters upon registration, and a `run` method, to run your systems in sequence.
-- `context` : ensure these class are properly build, and expose a reference to each of these.
+- `context` : ensure these class are properly built, and expose a reference to each of these.
 
 ## Code Example
 ```cpp
