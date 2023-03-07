@@ -2,7 +2,7 @@
 ** \file indexer.hpp
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-12-11 15:46
-** \date Last update: 2021-12-29 20:26
+** \date Last update: 2023-03-07 08:44
 */
 
 #ifndef utility_indexer_hpp__
@@ -81,7 +81,7 @@ namespace hex::utility {
     /**
     ** \relates indexer_iterator
     */
-    void swap(indexer_iterator &lhs, indexer_iterator &rhs) {
+    inline void swap(indexer_iterator &lhs, indexer_iterator &rhs) {
         lhs.swap(rhs);
     }
 
