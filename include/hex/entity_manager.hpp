@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-11-13 12:29
-** \date Last update: 2021-12-29 16:05
+** \date Last update: 2023-11-19 16:00
 */
 
 #ifndef ENTITY_MANAGER_HPP_
@@ -11,6 +11,7 @@
 
 #include <limits> // std::numeric_limits
 #include <cstddef> // std::size_t
+#include <cstdint>
 #include <memory> // std::shared_ptr
 #include <optional> // std::nullopt
 #include <stdexcept> // std::invalid_argument
