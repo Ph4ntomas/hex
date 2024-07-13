@@ -1,5 +1,5 @@
 # HEX
-`Hex` is a header only ECS implementation written in **C++ 17**
+`Hex` is a header only ECS implementation written in **C++ 20
 
 ## Introduction
 The entity-component-system is a software architectural pattern that follows the principle of composition over inheritance.

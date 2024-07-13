@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(Hex VERSION 1.0.1
-            DESCRIPTION "A header only c++17 ECS implementation"
+project(Hex VERSION 1.6.0
+            DESCRIPTION "A header only c++20 ECS implementation"
             HOMEPAGE_URL "https://github.com/Ph4ntomas/hex")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -18,7 +18,7 @@ target_include_directories(${PROJECT_NAME}
                 $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 
 set(CMAKE_CTEST_ARGUMENTS --output-on-failure)
