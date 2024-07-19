@@ -3,6 +3,7 @@
 
 #include <future>
 #include <optional>
+#include <type_traits>
 #include <typeindex>
 #include <unordered_map>
 
@@ -45,6 +46,17 @@ namespace hex::events {
         callback, /**< Callback based event. */
         polling /**< Polling based event. */
     };
+
+    namespace __impl {
+        template <typename T>
+        std::type_info const & get_type_info(T && t) {
+            if constexpr (std::is_same_v<std::any, std::remove_cvref_t<T>>) {
+                return t.type();
+            } else {
+                return typeid(T);
+            }
+        }
+    }
 
     /**
     ** \brief Event dispatcher.
@@ -220,46 +232,29 @@ namespace hex::events {
             /**
             ** \brief dispatch an event.
             **
-            ** This function takes an
+            ** This function takes an arbitrary event, possibly wrapped in a
+            ** std::any. It then check that either a callback, or a queue was
+            ** declared for this type.
+            **
+            ** If the event is callback based, the callback is then dispatched
+            ** directly for synchronous callbacks, asynchronously, or pushed
+            ** into a queue for trigger based callbacks.
+            **
+            ** If the event is queue-based, it's pushed into its respective queue.
             **
             ** \tparam Event type of the event to dispatch
             ** \param ev event to dispatch
             */
             template <typename Event>
             dispatcher const & dispatch(Event const &ev) const {
-                std::type_index idx = typeid(Event);
+                std::type_index idx = __impl::get_type_info(ev);
 
                 if (!_event_kinds.contains(idx)) { return *this; }
 
                 event_kind k = _event_kinds.at(idx);
 
                 if (k == event_kind::callback && _callbacks.contains(idx)) {
-                    _dispatch_callback(ev);
-                } else if (auto queue = _queues.find(idx); queue != _queues.end()) {
-                    queue->second.push(ev);
-                }
-
-                return *this;
-            }
-
-            /**
-            ** \brief dispatch a type-erased event.
-            **
-            ** This overload is equivalent to the templated dispatch, with the exception that
-            ** the event is wrapped in a std::any.
-            ** This is useful if the type of the event is not known at compile-time.
-            **
-            ** \param ev event to dispatch, wrapped in a std::any.
-            */
-            dispatcher const & dispatch(std::any const &ev) const {
-                std::type_index idx = ev.type();
-
-                if (!_event_kinds.contains(idx)) { return *this; }
-
-                event_kind k = _event_kinds.at(idx);
-
-                if (k == event_kind::callback && _callbacks.contains(idx)) {
-                    _dispatch_callback(ev);
+                    _dispatch_callback(ev, idx);
                 } else if (auto queue = _queues.find(idx); queue != _queues.end()) {
                     queue->second.push(ev);
                 }
@@ -288,9 +283,7 @@ namespace hex::events {
             ** \brief dispatch a callback-style event.
             */
             template <typename Event>
-            void _dispatch_callback(Event const &ev) const {
-                std::type_index idx = typeid(Event);
-
+            void _dispatch_callback(Event const &ev, std::type_index idx) const {
                 auto const &container = _callbacks.at(idx);
                 callbacks::dispatch_policy pol = _callbacks_policies.at(idx);
 

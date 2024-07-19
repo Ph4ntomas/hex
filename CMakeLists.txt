@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(Hex VERSION 1.6.0
+project(Hex VERSION 1.6.1
             DESCRIPTION "A header only c++20 ECS implementation"
             HOMEPAGE_URL "https://github.com/Ph4ntomas/hex")
 
