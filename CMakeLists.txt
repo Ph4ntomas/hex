@@ -21,9 +21,10 @@ target_include_directories(${PROJECT_NAME}
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 
 
+if (${BUILD_TESTING})
 set(CMAKE_CTEST_ARGUMENTS --output-on-failure)
-enable_testing()
 add_subdirectory("tests")
+endif()
 
 install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}_Targets
