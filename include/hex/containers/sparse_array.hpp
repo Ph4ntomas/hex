@@ -3,7 +3,7 @@
 **
 ** \author Phantomas <phantomas@phantomas.xyz>
 ** \date Created on: 2021-10-29 12:28
-** \date Last update: 2021-12-29 19:32
+** \date Last update: 2024-07-20 16:24
 */
 
 #ifndef SPARSE_ARRAY_HPP_
@@ -174,9 +174,20 @@ namespace hex::containers {
             //[[nodiscard]] reference at(size_type pos);
             //[[nodiscard]] const_reference at(size_type pos) const;
 
-            using base_t::operator[];
-            //[[nodiscard]] reference operator[](size_type pos);
-            //[[nodiscard]] const_reference operator[](size_type pos) const;
+            //using base_t::operator[];
+            [[nodiscard]] reference operator[](size_type pos) {
+                if (pos >= size())
+                    base_t::resize(pos);
+
+                return base_t::operator[](pos);
+            }
+
+            [[nodiscard]] const_reference operator[](size_type pos) const {
+                if (pos >= size())
+                    return _nullopt;
+
+                return base_t::operator[](pos);
+            }
 
             using base_t::data;
             //[[nodiscard]] pointer data() noexcept;
@@ -301,6 +312,8 @@ namespace hex::containers {
                 if (pos >= base_t::size())
                     base_t::resize(pos + 1);
             }
+
+            static constexpr std::optional<T> _nullopt{std::nullopt};
     };
 
     /**
